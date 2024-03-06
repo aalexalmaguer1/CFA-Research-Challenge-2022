@@ -1,0 +1,58 @@
+---
+title: "USD/PEN"
+author: "Alejandro Almaguer"
+date: "2022-11-01"
+output:
+  word_document: default
+  html_document: default
+---
+
+###Se añaden librerias
+```{r}
+library(fpp2)
+library(readxl)
+library(dplyr)
+library(lubridate)
+library(tidyr)
+library(stats)
+library(astsa)
+library(tseries)
+```
+
+### Se añade el archivo
+```{r}
+USDPEN_anuales <- read_xlsx("C:/Users/aalma/OneDrive/TEC/Carrera/CFA Challenge/Datos históricos USD_PEN.xlsx")
+```
+#El archivo incluye el tipo de cambio USD/PEN de forma anual desde el 1 de enero de 1991 hasta el 1 de enero del 2022
+
+###Se crea una serie con los datos
+```{r}
+serie5 <- ts(USDPEN_anuales$Cierre)
+```
+
+###Se grafican los datos 
+```{r}
+plot.ts(serie5)
+```
+###Se hace el test de Dickey Fuller para saber si la serie de datos es o no es estacionaria
+```{r}
+adf.test(serie5)
+```
+#Debido a que p-value>0.05 se rechaza la hipotesis nula y se acepta la hipotesis alternativa, lo que significa que la serie es estacionaria. Que la serie sea estacionaria significa que la distribucion en exhibe una varianza y autocorrelacion constante a lo largo del tiempo, por lo que es modelable mediante un modelo simple
+
+###Realizamos un ajuste con el metodo SARIMA. Este contiene varios paramentros, entre los que se encuentran, los datos que se van a utilizar, ademas de los parametros p,d y q que se utilizan en series estacionarias. (Los demas parametros se ignoraron debido a que se utilizan en series estacionales)
+```{r}
+ajuste5 <- sarima(serie5, 2,0,0)
+```
+#Si damos click en console podemos observar que los datos son significativos debido a que el p value del mean es menor a 0.05
+
+###Vamos a crear el pronostico con los 4 años posteriores osea desde hoy hasta el 2026
+```{r}
+sarima.for(serie5, 2,0,0, n.ahead = 5)
+```
+###Para concluir realizaremos el Box test para comprobar que el ajuste esta bien realizado
+```{r}
+Box.test(resid(ajuste5$fit), type = "Box-Pierce")
+```
+#Debido a que en el box test el p-value es mayor a 0.05, no se rechaza la hipotesis nula, significando que los residuos se distribuyen como un ruido blanco por lo que el pronostico esta bien realizado
+
